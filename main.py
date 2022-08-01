@@ -1,8 +1,23 @@
 import random
 import time
 
-ranks = ("6", "7", "8", "9", "10", "J", "Q", "K", "A")
-suits = ("Diamonds ♦", "Clubs ♣", "Spades ♠", "Hearts ♥")
+suits = ("Spades ♠", "Clubs ♣", "Hearts ♥", "Diamonds ♦")
+ranks = (
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "J",
+    "Q",
+    "K",
+    "A",
+)
 values = {
     "2": 2,
     "3": 3,
@@ -19,31 +34,24 @@ values = {
     "A": 11,
 }
 
-#********************************************************************
+playing = True
+
+
 class Card:
-    def __init__(self, ranks, suits):
-        self.ranks = ranks
-        self.suits = suits
+    def __init__(self, suit, rank):
+        self.suit = suit
+        self.rank = rank
 
     def __str__(self):
-        return self.ranks + " of " + self.suits
+        return self.rank + " of " + self.suit
 
-    def value(self):
-        if self.ranks in ['J', 'Q', 'K']:
-            return 10
-        elif self.ranks == 'A':
-            return 1, 11
-        else:
-            return int(self.ranks)
 
-#********************************************************************
 class Deck:
     def __init__(self):
         self.deck = []
         for suit in suits:
             for rank in ranks:
-                self.deck.append(Card(suits, ranks))
-
+                self.deck.append(Card(suit, rank))
 
     def shuffle(self):
         random.shuffle(self.deck)
@@ -52,63 +60,137 @@ class Deck:
         single_card = self.deck.pop()
         return single_card
 
-#********************************************************************
+
 class Hand:
     def __init__(self):
         self.cards = []
         self.value = 0
 
     def add_card(self, card):
-        self.cards.append(Card)
-        self.value += [card.value]
+        self.cards.append(card)
+        self.value += values[card.rank]
 
-#********************************************************************
+
 def hit(deck, hand):
     hand.add_card(deck.deal())
 
-def stop():
-    return False
-#********************************************************************
 
-def run_game():
+def hit_or_stop(deck, hand):
+    global playing
+
     while True:
-        print()
-        print("*****************************************")
-        print("Welcome to the Vladimir's casino! Today, we are playing BLACK JACK! Would you like to join us? yes OR no?")
-        to_do = input("Give me your answer: ").lower()
-        while to_do not in {"yes","no"}:
-            to_do = input("Speak English please, so I can understand you! yes OR no?")
-        if to_do == "no":
-            print()
-            print("It is easy money, but do what you want!")
+        x = input("\nWould you like to h or s? ").lower()
+
+        if x == "h":
+            hit(deck, hand)  # hit() function defined above
+
+        elif x == "s":
+            print("Player stops. Dealer is playing.")
+            playing = False
+
+        else:
+            print("Speak English PLS.Enter h or s.")
+            continue
+        break
+
+
+def show_some(player, dealer):
+    print("Player's Hand:", *player.cards, sep="\n ")
+    print("Player's Hand =", player.value)
+    print("\nDealer's Hand:")
+    print("","<card hidden>")
+    print("",dealer.cards[1])
+
+
+def show_all(player, dealer):
+    print("\nPlayer's Hand:", *player.cards, sep="\n ")
+    print("Player's Hand =", player.value)
+    print("\nDealer's Hand:", *dealer.cards, sep="\n ")
+    print("Dealer's Hand =", dealer.value)
+
+
+def player_busts(player, dealer):
+    print("\n--- Player busts! ---")
+
+
+def player_wins(player, dealer):
+    print("\n--- Player has **BLACKJACK**! You win! ---")
+
+
+def dealer_busts(player, dealer):
+    print("\n--- Dealer busts! You win! ---")
+
+
+def dealer_wins(player, dealer):
+    print("\n--- Dealer wins! ---")
+
+
+def push(player, dealer):
+    print("\nIts a tie!")
+
+
+# GAMEPLAY!
+
+while True:
+    print("\n----------------------------------------------------------------")
+    print("                ♠♣♥♦ WELCOME TO BLACKJACK! ♠♣♥♦")
+    print("                          Lets Play!")
+    print("----------------------------------------------------------------")
+    print(
+    )
+
+    deck = Deck()
+    deck.shuffle()
+
+    player_hand = Hand()
+    player_hand.add_card(deck.deal())
+    player_hand.add_card(deck.deal())
+
+    dealer_hand = Hand()
+    dealer_hand.add_card(deck.deal())
+    dealer_hand.add_card(deck.deal())
+
+    show_some(player_hand, dealer_hand)
+
+    while playing:
+
+        hit_or_stop(deck, player_hand)
+        show_some(player_hand, dealer_hand)
+
+        if player_hand.value > 21:
+            player_busts(player_hand, dealer_hand)
             break
-        if to_do == "yes":
-            print()
-            print("That is right choice ;)")
-            print()
-            print(f"Table number {random.randrange(1, 10)} have a spot for you! ENJOY THE GAME;)")
-            time.sleep(3)
-            print("Delling...")
-            time.sleep(4)
-        
-        deck = Deck()
-        deck.shuffle()   
 
-        print("Here is your cards, good luck!")
-        player_hand = Hand()
-        player_hand.add_card(deck.deal())
-        player_hand.add_card(deck.deal())
+    if player_hand.value <= 21:
 
-        dealer_hand = Hand()
-        dealer_hand.add_card(deck.deal())
-        dealer_hand.add_card(deck.deal())
+        while dealer_hand.value < 17:
+            hit(deck, dealer_hand)
 
-        hit = input("Would you like to hit or stop?").lower
-        while hit not in {"hit", "stop"}:
-            hit = input{"That is not valid answer. Would you like to hit or stop?"}
-        if hit == "stop":
-            stop()
-        if hit == "hit":
-            hit()
+        time.sleep(2)
+        print("\n----------------------------------------------------------------")
+        print("                     ★ Final Results ★")
+        print("----------------------------------------------------------------")
 
-run_game()
+        show_all(player_hand, dealer_hand)
+
+        if dealer_hand.value > 21:
+            dealer_busts(player_hand, dealer_hand)
+
+        elif dealer_hand.value > player_hand.value:
+            dealer_wins(player_hand, dealer_hand)
+
+        elif dealer_hand.value < player_hand.value:
+            player_wins(player_hand, dealer_hand)
+
+        else:
+            push(player_hand, dealer_hand)
+
+    new_game = input("\nPlay another hand? y or n ").lower()
+    while new_game not in "y" "n":
+        new_game = input("Invalid Input. Please enter y or n ").lower()
+    if new_game == "y":
+        playing = True
+        continue
+    else:
+        print("\n------------------------Thanks for playing!---------------------\n")
+        break
